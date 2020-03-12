@@ -1,0 +1,11 @@
+
+Python 3.8.x
+Django 
+Channel
+Pandas
+
+
+Bootstrap
+Vue.js
+eCharts.js
+
