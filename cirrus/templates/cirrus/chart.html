@@ -171,11 +171,12 @@
 
         <div class="my-4 w-100"  id="cirrus-chart"></div>
         <div class="btn-group" role="group" aria-label="Basic example">
+          <button class="btn btn-outline-secondary" href="#">Y: </button>
           <div class="btn-group" role="group" v-for="(row, i) in y_axis">
-            <button id="btnGroupDrop1" type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              Y: {[ row[0] ]}  {[ row[1]]}
+            <button type="button" class="btn dropdown-toggle btn-outline-secondary" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              {[ row[0] ]}  {[ row[1]]}
             </button>
-            <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+            <div class="dropdown-menu">
               <a class="dropdown-item" href="#">Value</a>
               <a class="dropdown-item" href="#">Accumulated Sum (cumsum)</a>
               <a class="dropdown-item" href="#">Accumulated Average (cumavg)</a>
@@ -183,16 +184,17 @@
               <a class="dropdown-item" href="#">Revmove</a>
             </div>
           </div>
-          <button type="button" class="btn "><i class="fa fa-plus"></i></button>
+          <button type="button" class="btn btn-outline-secondary"><i class="fa fa-plus"></i></button>
         </div>
-        <div class="btn-group float-right" role="group" aria-label="Basic example">
-          <button id="btnGroupDrop1" type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            X: {[ x_axis ]}
+        <div class="btn-group float-right" role="group">
+          <button type="button" class="btn btn-outline-secondary" href="#">X: </button>
+          <button type="button" class="btn dropdown-toggle btn-outline-secondary" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {[ x_axis ]}
           </button>
-          <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+          <div class="dropdown-menu">
             <a class="dropdown-item" href="#" v-for="row in x_candidates">{[ row ]}</a>
             <div class="dropdown-divider"></div>
-            <a class="dropdown-item" href="#">Sort on X axis</a>
+            <a class="dropdown-item active" href="#">Sort on X axis</a>
           </div>
         </div>
         <hr/>
@@ -200,19 +202,7 @@
         <div class="table-responsive">
           <nav aria-label="Page navigation example">
             <ul class="pagination justify-content-end">
-              <li class="page-item disabled">
-                <a class="page-link" href="#" aria-label="Previous">
-                  <span aria-hidden="true">&laquo;</span>
-                </a>
-              </li>
-              <li class="page-item disabled"><a class="page-link" href="#" >1</a></li>
-              <li class="page-item"><a class="page-link" href="#">2</a></li>
-              <li class="page-item"><a class="page-link" href="#">3</a></li>
-              <li class="page-item">
-                <a class="page-link" href="#" aria-label="Next">
-                  <span aria-hidden="true">&raquo;</span>
-                </a>
-              </li>
+              <li class="page-item" v-for="row in page_set"><a class="page-link" href="#" v-on:click="set_page(row)" >{[ row ]}</a></li>
             </ul>
           </nav>
           <table class="table table-striped table-sm" id="cirrus-table">
@@ -247,8 +237,8 @@
                       <form class="px-4 py-3">
                         <div class="form-group">
                           <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
-                            <button type="button" class="btn btn-secondary"><i class="fas fa-sort-amount-down-alt"></i> Asc</button>
-                            <button type="button" class="btn btn-secondary"><i class="fas fa-sort-amount-up-alt"></i> Desc</button>
+                            <button type="button" class="btn btn-secondary" v-on:click="sort_data(row.name)"><i class="fas fa-sort-amount-down-alt"></i> Asc</button>
+                            <button type="button" class="btn btn-secondary" v-on:click="sort_data('-'+row.name)"><i class="fas fa-sort-amount-up-alt"></i> Desc</button>
                           </div>
                         </div>
                         <div class="form-group">
@@ -263,10 +253,10 @@
                         </div>
                         <div class="form-row">
                           <div class="col">
-                            <input type="text" class="form-control form-control-sm" placeholder="First name">
+                            <input type="text" class="form-control form-control-sm" placeholder="First">
                           </div>
                           <div class="col">
-                            <input type="text" class="form-control form-control-sm" placeholder="Last name">
+                            <input type="text" class="form-control form-control-sm" placeholder="Last">
                           </div>
                         </div>
                     </div>
@@ -314,7 +304,10 @@
         index: [],
         chart: null,
         x_axis: 'LOG2500',
-        y_axis: [['cumavg', 'rtn1'], ['cumavg', 'rtn3'], ['cumavg', 'rtn5'], ['cumavg', 'rtn10'], ['cumavg', 'rtn20'], ]
+        y_axis: [['cumavg', 'rtn1'], ['cumavg', 'rtn3'], ['cumavg', 'rtn5'], ['cumavg', 'rtn10'], ['cumavg', 'rtn20'], ],
+        page: 1,
+        page_set: [],
+        page_size: 100
       },
       filters: {
         cell: function(value, template, type) {
@@ -360,12 +353,13 @@
         load_data() {
           var self=this
           axios
-            .get('data.json')
+            .get('data.json', {params: {uuid: self.data_id, order: self.order.join(',')}})
             .then(function(response) {
               var data = response.data['data']
               self.order = data.order
               self.data  = data.data
               self.index = data.index
+              self.set_page(self.page)
             })
             .catch(function (error) { // 请求失败处理
               console.log(error);
@@ -383,12 +377,64 @@
             .catch(function (error) { // 请求失败处理
               console.log(error);
             });
-
+        },
+        sort_data(field) {
+          if (this.order.length > 0 && this.order[0] === field) {
+            return // Nothing Changed.
+          }
+          else {
+            for (var i = 0; i < this.order.length; ++i) {
+              var field_i = this.order[i]
+              if (field_i === field || field_i === '-' + field || '-'+field_i == field) {
+                this.order.splice(i, 1)
+                break
+              }
+            }
+            this.order.unshift(field)
+            this.load_data()
+          }
         },
         set_format(header, event) {
           var val = event.target.value
-          header.format=val
-          axios.post('set_format.act', {uuid: this.data_id, name: header.name, val: val})
+          if (header.format !== val) {
+            header.format=val
+            axios.post('set_format.act', {uuid: this.data_id, name: header.name, val: val})
+          }
+        },
+        set_page(page) {
+          var self = this
+          if (self.shape[0] > 0) {
+            var n_page = Math.ceil(this.shape[0] / this.page_size)
+            if (page > n_page) {
+              page = n_page
+            }
+            var page_set = [page]
+            for (var i = 1; i <= 4; ++i) {
+              if (page-i > 1) {
+                page_set.unshift(page-i)
+              }
+            }
+            if (page_set[0] !== 1) {
+              page_set.unshift(1)
+            }
+            for (var i = 1; i <= 9; ++i) {
+              if (page_set.length < 9 && page+i < n_page) {
+                page_set.push(page+i)
+              }
+              else if (page+i >= n_page) {
+                break;
+              }
+            }
+            if (page_set[page_set.length-1] < n_page) {
+              page_set.push(n_page)
+            }
+            this.page = page
+            this.page_set = page_set
+          }
+          else {
+            this.page = 1
+            this.page_set = []
+          }
         }
       },
       mounted () {

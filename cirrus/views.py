@@ -8,6 +8,9 @@ from django_redis import get_redis_connection
 from madlee.misc.dj import json_response, json_request
 from .const import *
 
+
+
+
 @json_response
 def header(request):
     uuid = request.GET.get('uuid', None)
@@ -45,6 +48,9 @@ def header(request):
     result['uuid'] = uuid
     return result
 
+
+
+
 @csrf_exempt
 @json_request
 @json_response
@@ -62,14 +68,16 @@ def set_format(request, uuid, name, val, **kwargs):
     return {
         'uuid': uuid, 'name': name, 'val': val, 'old': old_value
     }
-    
+ 
+
+
 
 @json_response
 def data(request):
     df = read_csv('tests/data/yiwen.csv')
-    orders = request.GET.get('orders', [])
+    orders = request.GET.get('order', '')
+    orders = [row for row in orders.split(',') if row]
     if orders:
-        orders = orders.split(',')
         sort_func = request.GET.get('sort', 'quicksort')
         ascending = [
             row[0] != '-'
@@ -88,12 +96,14 @@ def data(request):
         else:
             columns[row] = [i for i in df[row]]
     
-
     return {
         'index': [row for row in df.index],
         'data': columns,
         'order': orders
     }
+
+
+
 
 @json_response
 def chart(request):
