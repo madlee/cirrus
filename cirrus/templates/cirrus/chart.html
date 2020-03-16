@@ -10,8 +10,7 @@
   <title>Cirrus.... floating above.... </title>
 
   <!-- Bootstrap core CSS -->
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
-    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <link href="https://cdn.bootcss.com/twitter-bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.bootcss.com/font-awesome/5.12.1/css/all.min.css" rel="stylesheet">
 
   <style>
@@ -171,38 +170,41 @@
 
         <div class="my-4 w-100"  id="cirrus-chart"></div>
         <div class="btn-group" role="group" aria-label="Basic example">
-          <button class="btn btn-outline-secondary" href="#">Y: </button>
+          <button class="btn btn-outline-secondary">Y: </button>
           <div class="btn-group" role="group" v-for="(row, i) in y_axis">
             <button type="button" class="btn dropdown-toggle btn-outline-secondary" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              {[ row[0] ]}  {[ row[1]]}
+              {[ row[0] ]}  {[ row[1] ]}
             </button>
             <div class="dropdown-menu">
-              <a class="dropdown-item" href="#">Value</a>
-              <a class="dropdown-item" href="#">Accumulated Sum (cumsum)</a>
-              <a class="dropdown-item" href="#">Accumulated Average (cumavg)</a>
+              <button class="dropdown-item" v-on:click="set_y_method(i, '')">Value</button>
+              <button class="dropdown-item" v-on:click="set_y_method(i, 'cumsum')">Accumulated Sum (cumsum)</button>
+              <button class="dropdown-item" v-on:click="set_y_method(i, 'cumavg')">Accumulated Average (cumavg)</button>
               <div class="dropdown-divider"></div>
-              <a class="dropdown-item" href="#">Revmove</a>
+              <button class="dropdown-item" v-on:click="remove_y(i)">Revmove</button>
             </div>
           </div>
           <button type="button" class="btn btn-outline-secondary"><i class="fa fa-plus"></i></button>
         </div>
         <div class="btn-group float-right" role="group">
-          <button type="button" class="btn btn-outline-secondary" href="#">X: </button>
+          <button type="button" class="btn btn-outline-secondary">X: </button>
           <button type="button" class="btn dropdown-toggle btn-outline-secondary" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             {[ x_axis ]}
           </button>
           <div class="dropdown-menu">
-            <a class="dropdown-item" href="#" v-for="row in x_candidates">{[ row ]}</a>
+            <button class="dropdown-item" v-for="row in numerical_columns" v-on:click="set_x(row)" v-bind:class="{ active: row===x_axis }">
+              {[ row ]}
+            </button>
             <div class="dropdown-divider"></div>
-            <a class="dropdown-item active" href="#">Sort on X axis</a>
+            <button class="dropdown-item" v-on:click="toggle_sort_x()" v-bind:class="{ active: sort_on_x }">Sort on X axis</button>
           </div>
         </div>
         <hr/>
 
         <div class="table-responsive">
-          <nav aria-label="Page navigation example">
+          <nav aria-label="Page navigation">
             <ul class="pagination justify-content-end">
-              <li class="page-item" v-for="row in page_set"><a class="page-link" href="#" v-on:click="set_page(row)" >{[ row ]}</a></li>
+              <li class="page-item" v-for="row in page_set" v-bind:class="{ active: row===page }"><button class="page-link" v-on:click="set_page(row)" >{[ row ]}</button></li>
+              <li class="page-item" v-bind:class="{ active: 'ALL'===page }"><button class="page-link" v-on:click="set_page_all" >ALL</button></li>
             </ul>
           </nav>
           <table class="table table-striped table-sm" id="cirrus-table">
@@ -210,9 +212,9 @@
               <tr>
                 <th>
                   <div class="dropdown">
-                    <a class="btn dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button class="btn dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                       #
-                    </a>
+                    </button>
                     <div class="dropdown-menu">
                       <form class="px-4 py-3">
                         <div class="form-group">
@@ -223,17 +225,16 @@
                         </div>
                       </form>
                       <h5 class="dropdown-header"> Show/Hide </h5>
-                      <a class="dropdown-item" href="#" v-for="col in header">{[ col.name ]}</a>
+                      <button class="dropdown-item" v-for="col in header">{[ col.name ]}</button>
                     </div>
                   </div>
                 </th>
                 <th v-for="row in header">
                   <div class="dropdown">
-                    <a class="btn dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button class="btn dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                       {[ row.name ]}
-                    </a>
+                    </button>
                     <div class="dropdown-menu">
-                      <h5 class="dropdown-header">{[ row.type ]}</h5>
                       <form class="px-4 py-3">
                         <div class="form-group">
                           <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
@@ -259,14 +260,17 @@
                             <input type="text" class="form-control form-control-sm" placeholder="Last">
                           </div>
                         </div>
+                      </form>
+                      <div class="dropdown-divider"></div>
+                      <button class="dropdown-item" ><i class="fas fa-cogs"></i> Config </button>
                     </div>
                   </div>
                 </th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(row, i) in index"> 
-                <td>{[ row ]}</td>
+              <tr v-for="i in current_page"> 
+                <td>{[ index[i] ]}</td>
                 <td v-for="col in header" align="right">{[ data[col.name][i] | cell(col.format, col.type) ]}</td>
               </tr>
             </tbody>
@@ -281,9 +285,7 @@
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
     integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
     crossorigin="anonymous"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
-    integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
-    crossorigin="anonymous"></script>
+  <script src="https://cdn.bootcss.com/twitter-bootstrap/4.4.1/js/bootstrap.min.js"></script>
   <!-- <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> -->
   <script src="https://cdn.jsdelivr.net/npm/vue"></script>
   <script src="https://cdn.bootcss.com/axios/0.19.2/axios.min.js"></script>
@@ -304,10 +306,12 @@
         index: [],
         chart: null,
         x_axis: 'LOG2500',
+        sort_on_x: true,
         y_axis: [['cumavg', 'rtn1'], ['cumavg', 'rtn3'], ['cumavg', 'rtn5'], ['cumavg', 'rtn10'], ['cumavg', 'rtn20'], ],
         page: 1,
         page_set: [],
-        page_size: 100
+        page_size: 100,
+        current_page: []
       },
       filters: {
         cell: function(value, template, type) {
@@ -338,7 +342,7 @@
         }
       },
       computed: {
-        x_candidates() {
+        numerical_columns() {
           var result = []
           for (var i = 0; i < this.header.length; ++i) {
             var head_i = this.header[i]
@@ -352,8 +356,12 @@
       methods: {
         load_data() {
           var self=this
+          var parm =  {
+            uuid: self.data_id, 
+            order: self.order.join(',')
+          }
           axios
-            .get('data.json', {params: {uuid: self.data_id, order: self.order.join(',')}})
+            .get('data.json', {params: parm})
             .then(function(response) {
               var data = response.data['data']
               self.order = data.order
@@ -367,8 +375,24 @@
         },
         update_chart() {
           var self=this
+          var y_axis = []
+          for (var i = 0; i < self.y_axis.length; ++i) {
+            y_axis.push(self.y_axis[i].join(':'))
+          }
+          var parm =  {
+            chart_id: self.chart_id, 
+            data_id: self.data_id,
+            x_axis: self.x_axis,
+            y_axis: y_axis.join('|')
+          }
+          if (this.sort_on_x) {
+            parm.sort_on_x = 1
+          }
+          else {
+            parm.sort_on_x = ''
+          }
           axios
-            .get('chart.json')
+            .get('chart.json', {params: parm})
             .then(function(response) {
               var option = response.data['data']
               self.option = option
@@ -399,6 +423,32 @@
           if (header.format !== val) {
             header.format=val
             axios.post('set_format.act', {uuid: this.data_id, name: header.name, val: val})
+          }
+        },
+        set_x(new_col) {
+          if (new_col !== this.x_axis) {
+            this.x_axis = new_col
+            this.update_chart()
+          }
+        },
+        toggle_sort_x() {
+          this.sort_on_x = !this.sort_on_x
+          this.update_chart()
+        },
+        set_y_method(i, method) {
+          var y_axis = this.y_axis
+          if (i < y_axis.length && y_axis[i][0] !== method) {
+            y_axis[i][0] = method
+            this.update_chart()
+            this.y_axis = y_axis.concat()
+          }
+        },
+        remove_y(i) {
+          var y_axis = this.y_axis
+          if (i < y_axis.length) {
+            y_axis.splice(i, 1)
+            this.update_chart()
+            this.y_axis = y_axis
           }
         },
         set_page(page) {
@@ -435,6 +485,28 @@
             this.page = 1
             this.page_set = []
           }
+
+          var current_page = []
+          var start = (this.page-1)*this.page_size+1
+          var finish = this.page*this.page_size+1
+          if (finish > this.shape[0] ) {
+            finish = this.shape[0]
+          }
+          for (var i = start; i < finish; ++i) {
+            current_page.push(i)
+          }
+          this.current_page = current_page
+        },
+        set_page_all() {
+          if (this.shape[0] > 1000) {
+            // TODO: Confirm for big table
+          }
+          this.page = 'ALL'
+          var current_page = []
+          for (var i = 0; i < this.shape[0]; ++i) {
+            current_page.push(i)
+          }
+          this.current_page = current_page
         }
       },
       mounted () {

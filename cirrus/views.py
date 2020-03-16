@@ -5,10 +5,14 @@ from pandas import read_csv
 from django.views.decorators.csrf import csrf_exempt
 from django_redis import get_redis_connection
 
-from madlee.misc.dj import json_response, json_request
+from madlee.misc.dj import json_response, json_request, render
 from .const import *
 
+def index(request):
+    return render(request, 'cirrus/chart.html')
 
+def _get_data(uuid):
+    return read_csv('tests/data/yiwen.csv')
 
 
 @json_response
@@ -22,7 +26,7 @@ def header(request):
     if result:
         result = {k.decode(): load_json(v) for k, v in result.items()}
     else:
-        df = read_csv('tests/data/yiwen.csv')
+        df = _get_data(uuid)
         count = df.count()
         unique = df.nunique()
         max    = df.max()
@@ -35,7 +39,8 @@ def header(request):
             # 'min': min[row] ,
             'count': int(count[row]),
             'unique': int(unique[row]),
-            'type': str(dtype[row])
+            'type': str(dtype[row]),
+            'format': ''
         } for row in df.columns ]
     
         result = {
@@ -74,7 +79,8 @@ def set_format(request, uuid, name, val, **kwargs):
 
 @json_response
 def data(request):
-    df = read_csv('tests/data/yiwen.csv')
+    data_id = request.GET.get('uuid', '')
+    df = _get_data(data_id)
     orders = request.GET.get('order', '')
     orders = [row for row in orders.split(',') if row]
     if orders:
@@ -105,95 +111,138 @@ def data(request):
 
 
 
+def _cumsum(y):
+    return y.cumsum()
+
+def _cumavg(y):
+    n = y.notna()
+    return y.cumsum()/n.cumsum()
+
+def _cumcount(y):
+    n = y.notna()
+    return n.cumsum()
+
+def _cummax(y):
+    return y.cummax()
+
+def _cummin(y):
+    return y.cummin()
+
+
+cumfunc = {
+    'cumsum': _cumsum,
+    'cumavg': _cumavg,
+    'count':  _cumcount,
+    'cummax': _cummax,
+    'cummin': _cummin,
+}
+
+
+
 @json_response
 def chart(request):
-    uuid = request.GET.get('uuid', None)
-    if uuid == None:
-        uuid = str(uuid4())
     # redis = get_redis_connection('cirrus')
     # key = KEY_CHART_PREFIX + uuid
 
+    data_id = request.GET.get('data_id', '')   
+    x_axis = request.GET.get('x_axis', '')
+    sort_on_x = request.GET.get('sort_on_x', True)
+    y_axis = request.GET.get('y_axis', '')
+    if y_axis:
+        y_axis = [row.split(':') for row in y_axis.split('|')]
+    else:
+        # TODO:
+        pass
+
     option = {
-    'animation': False,
-    'grid': {
-        'top': 40,
-        'left': 50,
-        'right': 40,
-        'bottom': 50
-    },
-    'xAxis': {
-        'name': 'x',
-        'minorTick': {
-            'show': True
+        'animation': False,
+        'grid': {
+            'top': 40,
+            'left': 50,
+            'right': 40,
+            'bottom': 50
         },
-        'splitLine': {
-            'lineStyle': {
-                'color': '#999'
+        'xAxis': {
+            'name': 'x',
+            'minorTick': {
+                'show': True
+            },
+            'splitLine': {
+                'lineStyle': {
+                    'color': '#999'
+                }
+            },
+            'minorSplitLine': {
+                'show': True,
+                'lineStyle': {
+                    'color': '#ddd'
+                }
             }
         },
-        'minorSplitLine': {
+        'yAxis': {
+            'name': 'y',
+            'minorTick': {
+                'show': True
+            },
+            'splitLine': {
+                'lineStyle': {
+                    'color': '#999'
+                }
+            },
+            'minorSplitLine': {
+                'show': True,
+                'lineStyle': {
+                    'color': '#ddd'
+                }
+            }
+        },
+        'dataZoom': [{
             'show': True,
-            'lineStyle': {
-                'color': '#ddd'
-            }
-        }
-    },
-    'yAxis': {
-        'name': 'y',
-        'minorTick': {
-            'show': True
-        },
-        'splitLine': {
-            'lineStyle': {
-                'color': '#999'
-            }
-        },
-        'minorSplitLine': {
+            'type': 'inside',
+            'filterMode': 'none',
+            'xAxisIndex': [0],
+            'startValue': 100,
+            'endValue': 500
+        }, {
             'show': True,
-            'lineStyle': {
-                'color': '#ddd'
-            }
-        }
-    },
-    'dataZoom': [{
-        'show': True,
-        'type': 'inside',
-        'filterMode': 'none',
-        'xAxisIndex': [0],
-        'startValue': 100,
-        'endValue': 500
-    }, {
-        'show': True,
-        'type': 'inside',
-        'filterMode': 'none',
-        'yAxisIndex': [0],
-        'startValue': -20,
-        'endValue': 20
-    }]
-}
+            'type': 'inside',
+            'filterMode': 'none',
+            'yAxisIndex': [0],
+            'startValue': -20,
+            'endValue': 20
+        }]
+    }
 
-    x_axis = 'R2500'
+    
 
-    df = read_csv('tests/data/yiwen.csv')
-    df.sort_values(x_axis, inplace=True)
+    df = _get_data(data_id)
+    if sort_on_x:
+        df.sort_values(x_axis, inplace=True)
     series = []
-    legend = ['rtn1', 'rtn3', 'rtn5', 'rtn10', 'rtn20']
+    legend = [] 
     x = df[x_axis]
-    for row in legend:
-        y = df[row]
-        y = y.cumsum()
-        n = y.notna().cumsum()
-        data = [(a, b/c) for a, b, c in zip(x, y, n) if isfinite(a) and isfinite(b)]
+    for func, field in y_axis:
+        y = df[field]
+        if func:
+            y = cumfunc[func](y)
+            name = '%s(%s)' % (func, field)
+        else:
+            name = field
+
+        legend.append(name)
+
+        data = [(a, b) for a, b in zip(x, y) if isfinite(a) and isfinite(b)]
         series.append({
             'data': data,
             'type': 'line',
             'showSymbol': False,
-            'name': row
+            'name': name
         })
 
     option['series'] = series
     option['legend'] = {
         'data': legend
     }
+    option['xAxis']['name'] = x_axis
 
     return option
