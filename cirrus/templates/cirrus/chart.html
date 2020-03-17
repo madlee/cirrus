@@ -176,11 +176,11 @@
               {[ row[0] ]}  {[ row[1] ]}
             </button>
             <div class="dropdown-menu">
-              <button class="dropdown-item" v-on:click="set_y_method(i, '')">Value</button>
-              <button class="dropdown-item" v-on:click="set_y_method(i, 'cumsum')">Accumulated Sum (cumsum)</button>
-              <button class="dropdown-item" v-on:click="set_y_method(i, 'cumavg')">Accumulated Average (cumavg)</button>
+              <button class="dropdown-item" @click="set_y_method(i, '')">Value</button>
+              <button class="dropdown-item" @click="set_y_method(i, 'cumsum')">Accumulated Sum (cumsum)</button>
+              <button class="dropdown-item" @click="set_y_method(i, 'cumavg')">Accumulated Average (cumavg)</button>
               <div class="dropdown-divider"></div>
-              <button class="dropdown-item" v-on:click="remove_y(i)">Revmove</button>
+              <button class="dropdown-item" @click="remove_y(i)">Revmove</button>
             </div>
           </div>
           <button type="button" class="btn btn-outline-secondary"><i class="fa fa-plus"></i></button>
@@ -191,11 +191,11 @@
             {[ x_axis ]}
           </button>
           <div class="dropdown-menu">
-            <button class="dropdown-item" v-for="row in numerical_columns" v-on:click="set_x(row)" v-bind:class="{ active: row===x_axis }">
+            <button class="dropdown-item" v-for="row in numerical_columns" @click="set_x(row)" v-bind:class="{ active: row===x_axis }">
               {[ row ]}
             </button>
             <div class="dropdown-divider"></div>
-            <button class="dropdown-item" v-on:click="toggle_sort_x()" v-bind:class="{ active: sort_on_x }">Sort on X axis</button>
+            <button class="dropdown-item" @click="toggle_sort_x()" v-bind:class="{ active: sort_on_x }">Sort on X axis</button>
           </div>
         </div>
         <hr/>
@@ -203,8 +203,8 @@
         <div class="table-responsive">
           <nav aria-label="Page navigation">
             <ul class="pagination justify-content-end">
-              <li class="page-item" v-for="row in page_set" v-bind:class="{ active: row===page }"><button class="page-link" v-on:click="set_page(row)" >{[ row ]}</button></li>
-              <li class="page-item" v-bind:class="{ active: 'ALL'===page }"><button class="page-link" v-on:click="set_page_all" >ALL</button></li>
+              <li class="page-item" v-for="row in page_set" v-bind:class="{ active: row===page }"><button class="page-link" @click="set_page(row)" >{[ row ]}</button></li>
+              <li class="page-item" v-bind:class="{ active: 'ALL'===page }"><button class="page-link" @click="set_page_all" >ALL</button></li>
             </ul>
           </nav>
           <table class="table table-striped table-sm" id="cirrus-table">
@@ -238,13 +238,13 @@
                       <form class="px-4 py-3">
                         <div class="form-group">
                           <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
-                            <button type="button" class="btn btn-secondary" v-on:click="sort_data(row.name)"><i class="fas fa-sort-amount-down-alt"></i> Asc</button>
-                            <button type="button" class="btn btn-secondary" v-on:click="sort_data('-'+row.name)"><i class="fas fa-sort-amount-up-alt"></i> Desc</button>
+                            <button type="button" class="btn btn-secondary" @click="sort_data(row.name)"><i class="fas fa-sort-amount-down-alt"></i> Asc</button>
+                            <button type="button" class="btn btn-secondary" @click="sort_data('-'+row.name)"><i class="fas fa-sort-amount-up-alt"></i> Desc</button>
                           </div>
                         </div>
                         <div class="form-group">
                           <div class="input-group mb-3">
-                            <input type="text" class="form-control form-control-sm" placeholder="Format" v-on:blur="set_format(row, $event)" :value="row.format">
+                            <input type="text" class="form-control form-control-sm" placeholder="Format" @blur="set_format(row, $event)" :value="row.format">
                             <div class="input-group-append">
                               <button class="btn btn-outline-secondary btn-sm" type="button">
                                 <i class="fas fa-edit"></i>
