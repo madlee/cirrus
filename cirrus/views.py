@@ -103,8 +103,6 @@ def data(request):
                 lim = float(row['limits'][0])
             elif row['type'].startswith('int'):
                 lim = int(row['limits'][0])
-            
-            print ('####', row['name'], lim)
             df = df[df[row['name']] >= lim]
         elif row['limits'][1] != '':
             if row['type'].startswith('float'):
@@ -174,7 +172,7 @@ cumfunc = {
 
 @json_response
 def chart(request):
-    # redis = get_redis_connection('cirrus')
+    redis = get_redis_connection('cirrus')
     # key = KEY_CHART_PREFIX + uuid
 
     data_id = request.GET.get('data_id', '')   
@@ -246,9 +244,24 @@ def chart(request):
         }]
     }
 
-    
-
     df = _get_data(data_id)
+    key = KEY_DIGEST_PREFIX + data_id
+    header = load_json(redis.hget(key, 'header'))
+
+    for row in header:
+        if row['limits'][0] != '':
+            if row['type'].startswith('float'):
+                lim = float(row['limits'][0])
+            elif row['type'].startswith('int'):
+                lim = int(row['limits'][0])
+            df = df[df[row['name']] >= lim]
+        elif row['limits'][1] != '':
+            if row['type'].startswith('float'):
+                lim = float(row['limits'][1])
+            elif row['type'].startswith('int'):
+                lim = int(row['limits'][1])
+            df = df[df[row['name']] <= lim]
+            
     if sort_on_x:
         df.sort_values(x_axis, inplace=True)
     series = []
