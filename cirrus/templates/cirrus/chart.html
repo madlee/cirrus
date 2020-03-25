@@ -5,8 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="description" content="">
-  <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
-  <meta name="generator" content="Jekyll v3.8.6">
+  <meta name="author" content="Madlee">
   <title>Cirrus.... floating above.... </title>
 
   <!-- Bootstrap core CSS -->
@@ -145,7 +144,7 @@
     <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
     <ul class="navbar-nav px-3">
       <li class="nav-item text-nowrap">
-        <a class="nav-link" href="#">Sign out</a>
+        <button class="nav-link">Sign out</button>
       </li>
     </ul>
   </nav>
@@ -244,7 +243,7 @@
                         </div>
                         <div class="form-group">
                           <div class="input-group mb-3">
-                            <input type="text" class="form-control form-control-sm" placeholder="Format" @blur="set_format(row, $event)" :value="row.format">
+                            <input type="text" class="form-control form-control-sm" placeholder="Format" @blur="set_format(row, $event.target.value)" :value="row.format">
                             <div class="input-group-append">
                               <button class="btn btn-outline-secondary btn-sm" type="button">
                                 <i class="fas fa-edit"></i>
@@ -254,15 +253,15 @@
                         </div>
                         <div class="form-row">
                           <div class="col">
-                            <input type="text" class="form-control form-control-sm" placeholder="First">
+                            <input type="text" class="form-control form-control-sm" placeholder="&gt;" @blur="set_limit_lower(row, $event.target.value)" :value="row.limits[0]">
                           </div>
                           <div class="col">
-                            <input type="text" class="form-control form-control-sm" placeholder="Last">
+                            <input type="text" class="form-control form-control-sm" placeholder="&lt;" @blur="set_limit_upper(row, $event.target.value)" :value="row.limits[1]">
                           </div>
                         </div>
                       </form>
                       <div class="dropdown-divider"></div>
-                      <button class="dropdown-item" ><i class="fas fa-cogs"></i> Config </button>
+                      <button class="dropdown-item" ><i class="fas fa-cogs"></i> More Config </button>
                     </div>
                   </div>
                 </th>
@@ -354,11 +353,14 @@
         }
       },
       methods: {
-        load_data() {
+        load_data(new_limits) {
           var self=this
           var parm =  {
             uuid: self.data_id, 
             order: self.order.join(',')
+          }
+          if (typeof(new_limits) !== 'undefined') {
+            parm.new_limits=new_limits.join('|')
           }
           axios
             .get('data.json', {params: parm})
@@ -418,13 +420,20 @@
             this.load_data()
           }
         },
-        set_format(header, event) {
-          var val = event.target.value
+        set_format(header, val) {
           if (header.format !== val) {
             header.format=val
             axios.post('set_format.act', {uuid: this.data_id, name: header.name, val: val})
           }
         },
+        set_limit_lower(header, val) {
+          header.limits[0] = val
+          this.load_data(new_limits=[header.name, header.limits[0], header.limits[1]])
+        }, 
+        set_limit_upper(column, val ) {
+          header.limits[1] = val
+          this.load_data(new_limits=[header.name, header.limits[0], header.limits[1]])
+        }, 
         set_x(new_col) {
           if (new_col !== this.x_axis) {
             this.x_axis = new_col
@@ -454,7 +463,7 @@
         set_page(page) {
           var self = this
           if (self.shape[0] > 0) {
-            var n_page = Math.ceil(this.shape[0] / this.page_size)
+            var n_page = Math.ceil(this.index.length / this.page_size)
             if (page > n_page) {
               page = n_page
             }
@@ -489,8 +498,8 @@
           var current_page = []
           var start = (this.page-1)*this.page_size+1
           var finish = this.page*this.page_size+1
-          if (finish > this.shape[0] ) {
-            finish = this.shape[0]
+          if (finish > this.index.length ) {
+            finish = this.index.length
           }
           for (var i = start; i < finish; ++i) {
             current_page.push(i)
@@ -498,12 +507,12 @@
           this.current_page = current_page
         },
         set_page_all() {
-          if (this.shape[0] > 1000) {
+          if (this.index.length > 1000) {
             // TODO: Confirm for big table
           }
           this.page = 'ALL'
           var current_page = []
-          for (var i = 0; i < this.shape[0]; ++i) {
+          for (var i = 0; i < this.index.length; ++i) {
             current_page.push(i)
           }
           this.current_page = current_page

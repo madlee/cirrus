@@ -40,7 +40,8 @@ def header(request):
             'count': int(count[row]),
             'unique': int(unique[row]),
             'type': str(dtype[row]),
-            'format': ''
+            'format': '',
+            'limits': ['', '']
         } for row in df.columns ]
     
         result = {
@@ -79,8 +80,40 @@ def set_format(request, uuid, name, val, **kwargs):
 
 @json_response
 def data(request):
+    redis = get_redis_connection('cirrus')
+
     data_id = request.GET.get('uuid', '')
     df = _get_data(data_id)
+
+    key = KEY_DIGEST_PREFIX + data_id
+    header = load_json(redis.hget(key, 'header'))
+
+    new_limits = request.GET.get('new_limits', None)
+    if new_limits:
+        name, limits_lower, limits_upper = new_limits.split('|')
+    else:
+        name = None
+    for row in header:
+        if row['name'] == name:
+            row['limits'] = [limits_lower, limits_upper]
+            redis.hset(key, 'header', dump_json(header))
+            
+        if row['limits'][0] != '':
+            if row['type'].startswith('float'):
+                lim = float(row['limits'][0])
+            elif row['type'].startswith('int'):
+                lim = int(row['limits'][0])
+            
+            print ('####', row['name'], lim)
+            df = df[df[row['name']] >= lim]
+        elif row['limits'][1] != '':
+            if row['type'].startswith('float'):
+                lim = float(row['limits'][1])
+            elif row['type'].startswith('int'):
+                lim = int(row['limits'][1])
+            df = df[df[row['name']] <= lim]
+    
+    print (df)
     orders = request.GET.get('order', '')
     orders = [row for row in orders.split(',') if row]
     if orders:
