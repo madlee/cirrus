@@ -107,23 +107,6 @@
       }
     }
 
-    /*
- * Navbar
- */
-
-    .navbar-brand {
-      padding-top: .75rem;
-      padding-bottom: .75rem;
-      font-size: 1rem;
-      background-color: rgba(0, 0, 0, .25);
-      box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
-    }
-
-    .navbar .form-control {
-      padding: .75rem 1rem;
-      border-width: 0;
-      border-radius: 0;
-    }
 
     .form-control-dark {
       color: #fff;
@@ -139,15 +122,41 @@
 </head>
 
 <body>
-  <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-    <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#"><i class="fa fa-cloud"></i>  Cirrus</a>
-    <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
-    <ul class="navbar-nav px-3">
-      <li class="nav-item text-nowrap">
-        <button class="nav-link">Sign out</button>
-      </li>
-    </ul>
+  <nav class="navbar navbar-expand-lg navbar-light " style="background-color: #e3f2fd;">
+    <a class="navbar-brand text-primary" href="#"><i class="fas fa-cloud"></i> Cirrus</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+  
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+      </ul>
+      <form class="form-inline my-2 my-lg-0">
+        <label class="sr-only" for="txt-search">Search</label>
+        <div class="input-group my-2 mr-sm-2">
+          <div class="input-group-prepend">
+            <button class="btn btn-outline-secondary" type="button" id="btn-search">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+          <input type="text" class="form-control" id="txt-search" placeholder="Search">
+        </div>
+       
+        <div class="dropdown">
+          <button class="btn btn-outline-primary dropdown-toggle" type="button" id="btn-load" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="fab fa-open"></i> Load Data
+          </button>
+          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="btn-load">
+            <a class="dropdown-item" href="#"><i class="fas fa-folder-open"></i> Browse</a>
+            <a class="dropdown-item" href="#"><i class="fas fa-cloud-upload-alt"></i> Upload</a>
+            <a class="dropdown-item" href="#"><i class="fas fa-clipboard"></i> Paste</a>
+            <a class="dropdown-item" href="#"><i class="fas fa-leaf"></i> Bamboo</a>
+          </div>
+        </div>
+      </form>
+    </div>
   </nav>
+ 
 
   <div class="container-fluid" id="cirrus-app">
     <div class="row">
@@ -217,7 +226,7 @@
                     <div class="dropdown-menu">
                       <form class="px-4 py-3">
                         <div class="form-group">
-                          <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+                          <div class="btn-group btn-group-sm" role="group" aria-label="Sort Data">
                             <button type="button" class="btn btn-secondary"><i class="fas fa-sort-amount-down-alt"></i> Asc</button>
                             <button type="button" class="btn btn-secondary"><i class="fas fa-sort-amount-up-alt"></i> Desc</button>
                           </div>
