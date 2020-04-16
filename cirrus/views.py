@@ -6,10 +6,40 @@ from django.views.decorators.csrf import csrf_exempt
 from django_redis import get_redis_connection
 
 from madlee.misc.dj import json_response, json_request, render
+from madlee.views import list_file
 from .const import *
 
 def index(request):
     return render(request, 'cirrus/chart.html')
+
+@json_response
+def profile(request):
+    user = request.user
+    if user.is_anonymous:
+        return {
+            'user': {
+                'username': 'noone',
+                'name': 'NO ONE',
+                'is_anonymous': True
+            },
+            'config': {
+                'page_size': 50,
+                'chart_ratio': 50
+            }
+        }
+    else:
+        return {
+            'user': {
+                'username': user.username,
+                'name': user.get_full_name(),
+                'is_anonymous': False
+            },
+            'config': {
+                'page_size': 50,
+                'chart_ratio': 50
+            }
+        }
+        
 
 def _get_data(uuid):
     return read_csv('tests/data/yiwen.csv')
@@ -292,3 +322,4 @@ def chart(request):
     option['xAxis']['name'] = x_axis
 
     return option
+

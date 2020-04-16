@@ -20,7 +20,7 @@ from madlee.misc.dj import render_template
 from . import urls as cirrus_urls
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('cirrus/admin/', admin.site.urls),
     path('cirrus/', include(cirrus_urls)),
 
     re_path(r'.html$', render_template)

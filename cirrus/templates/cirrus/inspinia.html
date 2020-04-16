@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-w idth, initial-scale=1.0">
+
+  <title>Cirrus | .... floating with NO mind ....</title>
+
+  <link href="{% static 'cirrus/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'cirrus/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet">
+  <link href="{% static 'cirrus/css/animate.css' %}" rel="stylesheet">
+  <link href="{% static 'cirrus/css/style.css' %}" rel="stylesheet">
+
+</head>
+
+<body class="top-navigation">
+
+  <div id="cirrus-app">
+    <div id="page-wrapper" class="gray-bg">
+      <div class="row border-bottom white-bg">
+        <nav class="navbar navbar-expand-lg navbar-static-top" role="navigation">
+          <a href="#" class="navbar-brand" title=".... floating with NO mind ....">
+            <img src="{% static 'cirrus/img/cirrus.png' %}" width="22" height="22"
+              class="d-inline-block align-top rounded-circle" alt="Cirrus">
+            Cirrus
+          </a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar"
+            aria-expanded="false" aria-label="Toggle navigation">
+            <i class="fa fa-reorder"></i>
+          </button>
+
+          <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav mr-auto">
+              <li class="active dropdown">
+                <a aria-expanded="false" role="button" href="#" class="dropdown-toggle" data-toggle="dropdown"> 
+                  <i class="fa fa-database"></i> Load Data
+                </a>
+                <ul role="menu" class="dropdown-menu">
+                    <li><a role="button" data-toggle="modal" data-target="#dlg-browse"><i class="fa fa-folder-open-o"></i> Browse on Server</a></li>
+                    <li><a href=""><i class="fa fa-upload"></i> Upload File</a></li>
+                    <li><a href=""><i class="fa fa-clipboard"></i> Paste Clipboard</a></li>
+                    <li><a href=""><i class="fa fa-leaf"></i> Bamboo in future</a></li>
+                </ul>
+              </li>
+            </ul>
+            <ul class="nav navbar-top-links navbar-right">
+              <li is="user-profile" :user="profile.user"></li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+      <div class="wrapper wrapper-content">
+        <div class="container">
+
+        </div>
+      </div>
+    </div>
+
+    <div class="modal inmodal fade" id="dlg-browse" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <dlg-browse></dlg-browse>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Mainly scripts -->
+  <script src="{% static 'cirrus/js/jquery-3.1.1.min.js' %}"></script>
+  <script src="{% static 'cirrus/js/popper.min.js' %}"></script>
+  <script src="{% static 'cirrus/js/bootstrap.min.js' %}"></script>
+  <script src="{% static 'cirrus/js/moment.min.js' %}"></script>
+  <script src="{% static 'cirrus/js/plugins/metisMenu/jquery.metisMenu.js' %}"></script>
+  <script src="{% static 'cirrus/js/plugins/slimscroll/jquery.slimscroll.min.js' %}"></script>
+
+  <!-- Custom and plugin javascript -->
+  <script src="{% static 'cirrus/js/inspinia.js' %}"></script>
+  <script src="{% static 'cirrus/js/plugins/pace/pace.min.js' %}"></script>
+
+  <!-- vue and axios -->
+  <script src="{% static 'cirrus/js/vue.js' %}"></script>
+  <script src="{% static 'cirrus/js/axios.min.js' %}"></script>
+
+  <!-- Cirrus Components -->
+  <script src="{% static 'madlee/js/madlee.js' %}"></script>
+  <script src="{% static 'cirrus/js/cirrus-inspinia.js' %}"></script>
+
+  <script>
+    $(document).ready(function () {
+
+    });
+  </script>
+
+
+</body>
+
+</html>

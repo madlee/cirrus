@@ -139,3 +139,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+from madlee.misc.file import filter_file_for_list
+MADLEE_FOLDERS_FOR_BROWSE =  {
+    'HOME': ('C:/Users/madle', filter_file_for_list),
+    'DATA': ('E:/', filter_file_for_list)
+}
+
+
